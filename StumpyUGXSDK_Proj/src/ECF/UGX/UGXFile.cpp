@@ -66,6 +66,11 @@ int UGXFile::Save(string s)
 	BVec::ReplaceRange(&headerData[116], 4, BitConverter::GetBytesI32(indexData.size() ,   BitConverter::BigE));  //indexSize
 	BVec::ReplaceRange(&headerData[140], 4, BitConverter::GetBytesI32(materialData.size(), BitConverter::BigE));  //materialSize
 	
+	std::cout << (int)BitConverter::GetBytesI32(grannyData.size())[0] << '\n';
+	std::cout << (int)BitConverter::GetBytesI32(grannyData.size())[1] << '\n';
+	std::cout << (int)BitConverter::GetBytesI32(grannyData.size())[2] << '\n';
+	std::cout << (int)BitConverter::GetBytesI32(grannyData.size())[3] << '\n';
+
 	BVec::ReplaceRange(&headerData[12], 4, BitConverter::GetBytesI32(152 + grannyData.size() + cachedData.size() + vertexData.size() + indexData.size() + materialData.size(), BitConverter::BigE));
 	BVec::ReplaceRange(&headerData[8], 4, BitConverter::GetBytesI32(Util::CalcAdler32(&headerData[12], 20), BitConverter::BigE));
 

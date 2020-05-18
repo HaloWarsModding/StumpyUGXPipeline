@@ -8,7 +8,7 @@
 int main(int a, char** b)
 {
 	std::string helpString[12] = {
-		"\n===============================================================================\n",
+		"\n=======================OLD=====================================================\n",
 		"This program requires two flags to function.\n",
 		"Valid flags for flag 0: \n",
 		"-ugx => Convert this gr2 into a ugx (Halo Wars mesh)\n",
