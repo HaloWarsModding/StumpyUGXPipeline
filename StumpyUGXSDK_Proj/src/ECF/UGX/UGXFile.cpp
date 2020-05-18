@@ -534,7 +534,9 @@ f.indexData = newIndexData;
 int CreateUAXs(string s)
 {
 	granny_file* gf = GrannyReadEntireFile(s.c_str());
+	if (gf == NULL) { std::cout << "granny_file was null.\n"; return -64; };
 	granny_file_info* gfi = GrannyGetFileInfo(gf);
+	if (gfi == NULL) { std::cout << "granny_file_info was null.\n"; return -65; };
 	gfi->FromFileName = "gr2ugx";
 
 	unsigned char header[64] = {
@@ -592,7 +594,7 @@ int CreateUAXs(string s)
 	fwrite(&uax[0], uax.size(), 1, f);
 	fclose(f);
 
-	std::cout << "UAX saved to " + s;
+	std::cout << "UAX saved to " + s + ".uax\n";
 
 	return 1;
 }
