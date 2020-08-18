@@ -7,6 +7,26 @@
 
 int main(int a, char** b)
 {
+	if (string(b[1]) == "-debug")
+	{
+		std::cout << b[2];
+		UGXFile f = UGXFile::FromGR2(b[2]);
+		if (f.status == "OK")
+		{
+			string s(b[2]);
+			s = s.substr(0, s.find(".gr2"));
+
+			f.Save(s + ".ugx");
+			std::cout << "UGX Saved to " + s + ".ugx" << std::endl;
+		}
+		else
+		{
+			std::cout << "Error: " << f.status << "\nUGX could not be saved." << std::endl;
+		}
+		system("pause");
+		exit(117);
+	}
+
 	std::string helpString[12] = {
 		"\n=======================OLD=====================================================\n",
 		"This program requires two flags to function.\n",
