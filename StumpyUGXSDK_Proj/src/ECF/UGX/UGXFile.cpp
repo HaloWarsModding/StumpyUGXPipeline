@@ -184,11 +184,11 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(numBones), 8);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(subDataOffsetBase + (160 * numMeshes)), 8);
 	//accessories
-	uint64 numAccessories = 0;// (uint64)gfi->MeshCount;
+	uint64 numAccessories = (uint64)gfi->MeshCount;
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(numAccessories), 8);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(subDataOffsetBase + (160 * numMeshes) + (numBones * 112)), 8);
 	//valid accessories (?)
-	uint64 numValidAccessories = 0;// (uint64)gfi->MeshCount;
+	uint64 numValidAccessories = (uint64)gfi->MeshCount;
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(numValidAccessories), 8);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(subDataOffsetBase + (160 * numMeshes) + (numBones * 112) + (numAccessories * 28)), 8);
 	//bone bounds low
@@ -205,6 +205,7 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 	for (int i = 0; i < numMeshes; i++)
 	{
 		bool isRigid = GrannyMeshIsRigid(gfi->Meshes[i]);
+		std::cout << gfi->Meshes[i]->Name << '\n';
 
 		//material id
 		int32 materialID = 0;
@@ -326,8 +327,8 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 	int32 currentOffset = newCachedData.size();
 	for (int i = 0; i < numAccessories; i++)
 	{
-		int32 firstBone = 0;
-		int32 numBones = 1;
+		int32 firstBone = i;
+		int32 accessoryBoneCount = 1;
 		if (!GrannyMeshIsRigid(gfi->Meshes[i])) numBones = gfi->Skeletons[0]->BoneCount;
 		int32 sectionIndicesCount = 1;
 		int32 sectionIndicesOffset = currentOffset + (gfi->MeshCount * 24) + (i * 4);
@@ -335,7 +336,7 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 		//first bone
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(firstBone), 4);
 		//number of bones
-		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(numBones), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(accessoryBoneCount), 4);
 		//section indices count
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(sectionIndicesCount), 4);
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(NULL), 4);
@@ -343,18 +344,34 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(sectionIndicesOffset), 4);
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(NULL), 4);
 	}
-	for (int i = 0; i < numAccessories; i++)
+	for (int i = numAccessories - 1; i >= 0; i--) // for some reason, they need to be reversed in order from the meshes.
 	{
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(i), 4);
+		std::cout << i << '\n';
 	}
 
 	//valid accessories
-	for (int i = 0; i < numValidAccessories; i++)
+	for (int i = numValidAccessories; i >= 0; i--) // not required to be reversed, but doing it for simplicity.
 	{
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(i), 4);
 	}
 #pragma endregion
-
+#pragma region bonebounds
+	//low
+	for (int i = 0; i < numBones; i++)
+	{
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(-.00001f), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(-.00001f), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(-.00001f), 4);
+	}
+	//high
+	for (int i = 0; i < numBones; i++)
+	{
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(.00001f), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(.00001f), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(.00001f), 4);
+	}
+#pragma endregion
 	f.cachedData = newCachedData;
 #pragma endregion
 #pragma region create vertex data
