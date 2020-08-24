@@ -1,4 +1,4 @@
-#include "Util/crc/checksum.h"
+﻿#include "Util/crc/checksum.h"
 #include "UGXFile.h"
 #include "Util/tinyxml2.h"
 #include "Util/bitconverter.h"
@@ -10,6 +10,8 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <io.h>
+#include <fcntl.h>
 using namespace tinyxml2;
 
 int UGXFile::Open(string s)
@@ -79,7 +81,7 @@ int UGXFile::Save(string s)
 
 	return 1;
 }
-UGXFile UGXFile::FromGR2(string gr2Path)
+UGXFile UGXFile::FromGR2(string gr2Path, bool verbose)
 {
 	UGXFile f;
 	//prepare granny_file_info
@@ -89,6 +91,12 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 	if (gfi == NULL) { f.status = "granny_file_info was null."; return f; }
 	gfi->FromFileName = "gr2ugx";
 
+	//verbose output variables
+	std::vector<string> meshNames;
+	std::vector<int32> meshVertexCount;
+	std::vector<int32> meshIndexCount;
+	std::vector<string> meshIsRigid;
+	std::vector<string> boneNames;
 
 #pragma region insert ecf header
 	std::vector<byte> newHeaderData;
@@ -205,7 +213,6 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 	for (int i = 0; i < numMeshes; i++)
 	{
 		bool isRigid = GrannyMeshIsRigid(gfi->Meshes[i]);
-		std::cout << gfi->Meshes[i]->Name << '\n';
 
 		//material id
 		int32 materialID = 0;
@@ -220,7 +227,9 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(maxBones), 4);
 
 		//rigid bone index
-		int32 rigidBoneIndex = 0;
+		granny_mesh_binding* gmb = GrannyNewMeshBinding(gfi->Meshes[i], gfi->Skeletons[0], gfi->Skeletons[0]);
+		const granny_int32* mb = GrannyGetMeshBindingToBoneIndices(gmb);
+		int32 rigidBoneIndex = mb[0];
 		if (!isRigid) rigidBoneIndex = 0xFFFFFF7F;
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(rigidBoneIndex, BitConverter::BigE), 4);
 
@@ -245,9 +254,11 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 		int32 vertexBufferOffset = 0;
 		for (int j = 0; j < i; j++)
 		{
-			vertexBufferOffset += gfi->Meshes[j]->PrimaryVertexData->VertexCount;
+			int currentIterationVertexSize = 24;
+			if (!GrannyMeshIsRigid(gfi->Meshes[j])) currentIterationVertexSize = 32;
+			vertexBufferOffset += gfi->Meshes[j]->PrimaryVertexData->VertexCount * currentIterationVertexSize;
 		}
-		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(vertexBufferOffset * vertexSize), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(vertexBufferOffset), 4);
 
 		//vertex buffer size (in bytes)
 		int32 vertexBufferSize = gfi->Meshes[i]->PrimaryVertexData->VertexCount * vertexSize;
@@ -274,8 +285,13 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 									0x09, 0x00, 0x00, 0x00, 0x05, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 									0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 		BVec::AddToVectorFromPtr(newCachedData, baseVertPacker, 88);
-	}
 
+		std::string name(gfi->Meshes[i]->Name);
+		meshNames.push_back(name);
+		if (isRigid) meshIsRigid.push_back("Yes"); else meshIsRigid.push_back("No");
+		meshVertexCount.push_back(GrannyGetMeshVertexCount(gfi->Meshes[i]));
+		meshIndexCount.push_back(GrannyGetMeshIndexCount(gfi->Meshes[i]));
+	}
 	//packing order
 	for (int i = 0; i < numMeshes; i++)
 	{
@@ -294,10 +310,11 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 #pragma endregion
 #pragma region bones
 
+	int currentSize = newCachedData.size();
 	for (int i = 0; i < numBones; i++)
 	{
 		//name offset
-		int64 nameOffset = (gfi->Skeletons[0]->BoneCount * 80) + (32 * i);
+		int64 nameOffset = currentSize + (gfi->Skeletons[0]->BoneCount * 80) + (32 * i);
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI64(nameOffset), 8);
 
 		//world matrix
@@ -319,6 +336,7 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 			int16 k = 0;
 			BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI16(k), 1);
 		}
+		boneNames.push_back(gfi->Skeletons[0]->Bones[i].Name);
 	}
 
 #pragma endregion
@@ -347,7 +365,6 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 	for (int i = numAccessories - 1; i >= 0; i--) // for some reason, they need to be reversed in order from the meshes.
 	{
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(i), 4);
-		std::cout << i << '\n';
 	}
 
 	//valid accessories
@@ -411,36 +428,37 @@ UGXFile UGXFile::FromGR2(string gr2Path)
 	};
 #pragma endregion
 
+	int vdOffset = 0;
 	for (int i = 0; i < gfi->MeshCount; i++)
 	{
 		if (GrannyMeshIsRigid(gfi->Meshes[i])) //PNT0
 		{
-			void* vData = malloc(sizeof(PNT0) * GrannyGetMeshVertexCount(gfi->Meshes[i]));
+			int vDataSize = sizeof(PNT0) * GrannyGetMeshVertexCount(gfi->Meshes[i]);
+			void* vData = malloc(vDataSize);
 			GrannyCopyMeshVertices(gfi->Meshes[i], PNT0_def, vData);
 
-			BVec::AddToVectorFromPtr(newVertexData, (byte*)vData, sizeof(PNT0) * GrannyGetMeshVertexCount(gfi->Meshes[i]));
+			BVec::AddToVectorFromPtr(newVertexData, (byte*)vData, vDataSize);
+			vdOffset += vDataSize;
 		}
 		else
 		{
-			granny_mesh_binding* gmb = GrannyNewMeshBinding(gfi->Meshes[0], gfi->Skeletons[0], gfi->Skeletons[0]);
+			granny_mesh_binding* gmb = GrannyNewMeshBinding(gfi->Meshes[i], gfi->Skeletons[0], gfi->Skeletons[0]);
 			const granny_int32* mb = GrannyGetMeshBindingToBoneIndices(gmb);
 
-			void* vData = malloc(sizeof(PNST0) * GrannyGetMeshVertexCount(gfi->Meshes[i]));
+			int vDataSize = sizeof(PNST0) * GrannyGetMeshVertexCount(gfi->Meshes[i]);
+			void* vData = malloc(vDataSize);
 			GrannyCopyMeshVertices(gfi->Meshes[i], PNST0_def, vData);
 
-			BVec::AddToVectorFromPtr(newVertexData, (byte*)vData, sizeof(PNST0) * GrannyGetMeshVertexCount(gfi->Meshes[i]));
+			BVec::AddToVectorFromPtr(newVertexData, (byte*)vData, vDataSize);
 
-			//
-			//TODO: Investigate bug with having multiple skinned meshes. 
-			//This for loop does not take into account the offset of the current mesh.
-			//
 			for (int j = 0; j < GrannyGetMeshVertexCount(gfi->Meshes[i]); j++)
 			{
 				for (int k = 0; k < 4; k++)
 				{
-					newVertexData[(j * 32) + 20 + k] = (mb[(int)newVertexData[(j * 32) + 20 + k]] + 1);
+					newVertexData[vdOffset + (j * 32) + 20 + k] = (mb[(int)newVertexData[vdOffset + (j * 32) + 20 + k]] + 1);
 				}
 			}
+			vdOffset += vDataSize;
 		}
 	}
 	f.vertexData = newVertexData;
@@ -579,6 +597,38 @@ f.indexData = newIndexData;
 		remove("tmpgrx");
 	}
 
+#pragma endregion
+
+#pragma region verbose output
+	if (verbose) {
+		std::printf("\n____________________________________________________________________________________________\n");
+		std::printf("| Mesh Name                                        | Is Rigid | Vertex Count | Index Count |\n");
+		for (int i = 0; i < numMeshes; i++)
+		{
+			std::string s;
+			if (meshNames[i].size() > 48) s = meshNames[i].substr(0, 45) + "..."; else s = meshNames[i];
+			std::printf("| %-*s ", 48, s.c_str());
+			std::printf("| %-*s ", 8, meshIsRigid[i]);
+			std::printf("| %-*i ", 12, meshVertexCount[i]);
+			std::printf("| %-*i |", 11, meshIndexCount[i]);
+			std::printf("\n");
+		}
+
+		std::printf("\n____________________________________________________________________________________________\n");
+		std::printf("| Bone Name                                   | Bone Name                                  |\n");
+		for (int i = 0; i < (numBones); i += 2)
+		{
+			std::string s1;
+			if (boneNames[i].size() > 43) s1 = boneNames[i].substr(0, 40) + "..."; else s1 = boneNames[i];
+			std::printf("| %-*s |", 43, s1.c_str());
+
+			std::string s2;
+			if (boneNames[i + 1].size() > 43) s2 = boneNames[i + 1].substr(0, 40) + "..."; else s2 = boneNames[i + 1];
+			std::printf(" %-*s |\n", 42, s2.c_str());
+		}
+
+		std::printf("\n");
+	}
 #pragma endregion
 
 	f.status = "OK";

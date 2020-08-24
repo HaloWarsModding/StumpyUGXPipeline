@@ -17,7 +17,7 @@ public:
 	std::vector<byte> materialData;
 
 	int Open(string path);
-	static UGXFile FromGR2(string s);
+	static UGXFile FromGR2(string s, bool verbose);
 	int Save(string path);
 
 	string status;

@@ -7,10 +7,11 @@
 
 int main(int a, char** b)
 {
-	if (string(b[1]) == "-debug")
+	if (a < 2) goto START; //no params -- bypass debug code.
+	if (string(b[1]) == "-debug") //debug override.
 	{
 		std::cout << b[2];
-		UGXFile f = UGXFile::FromGR2(b[2]);
+		UGXFile f = UGXFile::FromGR2(b[2], true);
 		if (f.status == "OK")
 		{
 			string s(b[2]);
@@ -27,39 +28,27 @@ int main(int a, char** b)
 		exit(117);
 	}
 
-	std::string helpString[12] = {
-		"\n=======================OLD=====================================================\n",
-		"This program requires two flags to function.\n",
-		"Valid flags for flag 0: \n",
-		"-ugx => Convert this gr2 into a ugx (Halo Wars mesh)\n",
-		"-uax => Convert this gr2 into a uax (Halo Wars animation)\n",
-		"Valid flags for flag 1: \n",
-		"-path => Specifies a path to a .gr2 (Granny Runtime) file for conversion to the previously selected format.\n\n",
-		"Valid inputs would look like: \n",
-		"stumpygr2ugx -ugx -C:\\folder1\\mesh.gr2\n",
-		"stumpygr2ugx -uax -C:\\folder2\\anim.gr2\n\n",
-		"Output file will be placed in the exact path as the\ninput with the correct extension for the selected output.\n",
-		"===============================================================================\n"
-	};
-
 START:
 
 	std::string path;
-	std::string type;
+	std::string mode;
+	std::string materialPath;
+
+
 	std::cout << "Please enter a path to a .gr2 file.\n>>";
 	std::getline(std::cin, path);
 	std::cout << "Please select what you want to export this file as: (a = animation | m = mesh)\n>>";
-	std::getline(std::cin, type);
+	std::getline(std::cin, mode);
 
 
-	if (std::string(type) == "-h")
+	if (std::string(mode) == "-h")
 	{
 		//for (int i = 0; i < 12; i++)std::cout << helpString[i];
 	}
 
-	if (std::string(type) == "m")
+	if (std::string(mode) == "m")
 	{
-		UGXFile f = UGXFile::FromGR2(path);
+		UGXFile f = UGXFile::FromGR2(path, true);
 		if (f.status == "OK")
 		{
 			string s(path);
@@ -74,7 +63,7 @@ START:
 		}
 	}
 
-	if (std::string(type) == "a")
+	if (std::string(mode) == "a")
 	{
 		CreateUAXs(path);
 	}
