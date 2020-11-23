@@ -11,7 +11,7 @@ int main(int a, char** b)
 	if (string(b[1]) == "-debug") //debug override.
 	{
 		std::cout << b[2];
-		UGXFile f = UGXFile::FromGR2(b[2], true);
+		UGXFile f = UGXFile::FromGR2(b[2], false);
 		if (f.status == "OK")
 		{
 			string s(b[2]);
@@ -24,7 +24,7 @@ int main(int a, char** b)
 		{
 			std::cout << "Error: " << f.status << "\nUGX could not be saved." << std::endl;
 		}
-		system("pause");
+		//system("pause");
 		exit(117);
 	}
 

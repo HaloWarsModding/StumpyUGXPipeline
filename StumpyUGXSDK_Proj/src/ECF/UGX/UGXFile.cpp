@@ -6,12 +6,12 @@
 #include "Util/defs.h"
 #include "Util/bvec.h"
 #include "Util/xmlutils.h"
-#include "granny.h"
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <io.h>
 #include <fcntl.h>
+#include "granny.h"
 using namespace tinyxml2;
 
 int UGXFile::Open(string s)
@@ -84,6 +84,7 @@ int UGXFile::Save(string s)
 UGXFile UGXFile::FromGR2(string gr2Path, bool verbose)
 {
 	UGXFile f;
+	
 	//prepare granny_file_info
 	granny_file* gf = GrannyReadEntireFile(gr2Path.c_str());
 	if (gf == NULL) { f.status = "granny_file was null."; return f; }
@@ -286,11 +287,13 @@ UGXFile UGXFile::FromGR2(string gr2Path, bool verbose)
 									0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 		BVec::AddToVectorFromPtr(newCachedData, baseVertPacker, 88);
 
-		std::string name(gfi->Meshes[i]->Name);
-		meshNames.push_back(name);
-		if (isRigid) meshIsRigid.push_back("Yes"); else meshIsRigid.push_back("No");
-		meshVertexCount.push_back(GrannyGetMeshVertexCount(gfi->Meshes[i]));
-		meshIndexCount.push_back(GrannyGetMeshIndexCount(gfi->Meshes[i]));
+		if (verbose) {
+			std::string name(gfi->Meshes[i]->Name);
+			meshNames.push_back(name);
+			if (isRigid) meshIsRigid.push_back("Yes"); else meshIsRigid.push_back("No");
+			meshVertexCount.push_back(GrannyGetMeshVertexCount(gfi->Meshes[i]));
+			meshIndexCount.push_back(GrannyGetMeshIndexCount(gfi->Meshes[i]));
+		}
 	}
 	//packing order
 	for (int i = 0; i < numMeshes; i++)
@@ -618,13 +621,13 @@ f.indexData = newIndexData;
 		std::printf("| Bone Name                                   | Bone Name                                  |\n");
 		for (int i = 0; i < (numBones); i += 2)
 		{
-			std::string s1;
-			if (boneNames[i].size() > 43) s1 = boneNames[i].substr(0, 40) + "..."; else s1 = boneNames[i];
-			std::printf("| %-*s |", 43, s1.c_str());
+			//std::string s1;
+			//if (boneNames[i].size() > 43) s1 = boneNames[i].substr(0, 40) + "..."; else s1 = boneNames[i];
+			//std::printf("| %-*s |", 43, s1.c_str());
 
-			std::string s2;
-			if (boneNames[i + 1].size() > 43) s2 = boneNames[i + 1].substr(0, 40) + "..."; else s2 = boneNames[i + 1];
-			std::printf(" %-*s |\n", 42, s2.c_str());
+			//std::string s2;
+			//if (boneNames[i + 1].size() > 43) s2 = boneNames[i + 1].substr(0, 40) + "..."; else s2 = boneNames[i + 1];
+			//std::printf(" %-*s |\n", 42, s2.c_str());
 		}
 
 		std::printf("\n");
