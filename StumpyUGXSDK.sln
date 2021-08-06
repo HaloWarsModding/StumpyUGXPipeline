@@ -3,18 +3,42 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.779
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StumpyUGXSDK", "StumpyUGXSDK_Proj\StumpyUGXSDK.vcxproj", "{11909EAD-263E-4995-A7D6-0395008B7103}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GR2UGX", "StumpyUGXSDK_Proj\StumpyUGXSDK.vcxproj", "{11909EAD-263E-4995-A7D6-0395008B7103}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAEGR2", "DAEtoGR2\DAEGR2.csproj", "{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UGXGUI", "UGXGUI\UGXGUI.csproj", "{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11909EAD-263E-4995-A7D6-0395008B7103}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{11909EAD-263E-4995-A7D6-0395008B7103}.Debug|x64.ActiveCfg = Debug|x64
 		{11909EAD-263E-4995-A7D6-0395008B7103}.Debug|x64.Build.0 = Debug|x64
+		{11909EAD-263E-4995-A7D6-0395008B7103}.Release|Any CPU.ActiveCfg = Release|Win32
 		{11909EAD-263E-4995-A7D6-0395008B7103}.Release|x64.ActiveCfg = Release|x64
 		{11909EAD-263E-4995-A7D6-0395008B7103}.Release|x64.Build.0 = Release|x64
+		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Debug|x64.Build.0 = Debug|Any CPU
+		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Release|x64.ActiveCfg = Release|Any CPU
+		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Release|x64.Build.0 = Release|Any CPU
+		{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}.Debug|x64.Build.0 = Debug|Any CPU
+		{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}.Release|x64.ActiveCfg = Release|Any CPU
+		{D3FC0AE8-4F5C-4CAC-A470-8EE1517708E5}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

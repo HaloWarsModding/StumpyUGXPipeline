@@ -2,7 +2,9 @@
 #include <vector>
 #include <string>
 #include "Util/defs.h"
+#include "granny.h"
 
+class granny_file;
 class UGXFile
 {
 public:
@@ -17,10 +19,13 @@ public:
 	std::vector<byte> materialData;
 
 	int Open(string path);
-	static UGXFile FromGR2(string s, bool verbose);
+	static UGXFile FromGR2(bool verbose, granny_file_info* gf);
 	int Save(string path);
 
 	string status;
 };
 
-int CreateUAXs(string s);
+//TODO: move to new file.
+granny_file_info* LoadAndPreprocessGR2(granny_file*& out_gf, string path, string front, string right, string up);
+int CreateUAX(granny_file_info* gfi, string outPath);
+int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath);

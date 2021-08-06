@@ -7,67 +7,87 @@
 
 int main(int a, char** b)
 {
-	if (a < 2) goto START; //no params -- bypass debug code.
-	if (string(b[1]) == "-debug") //debug override.
-	{
-		std::cout << b[2];
-		UGXFile f = UGXFile::FromGR2(b[2], false);
-		if (f.status == "OK")
-		{
-			string s(b[2]);
-			s = s.substr(0, s.find(".gr2"));
+	string mode(b[1]);			// (-auto | -manual)
 
-			f.Save(s + ".ugx");
-			std::cout << "UGX Saved to " + s + ".ugx" << std::endl;
+	if (mode == "-auto")
+	{
+		if (a < 8) { std::cout << "not enough args.\n"; return -1; } //not enough args.
+
+		string outputType(b[2]);	// (-mesh | -anim)
+		string inputGr2Path(b[3]);  // (path)
+		string outputPath(b[4]);	// (path)
+		string front(b[5]);	// (ori)
+		string right(b[6]);	// (ori)
+		string up(b[7]);	// (ori)
+
+		granny_file* forFree;
+		granny_file_info* gfi = LoadAndPreprocessGR2(forFree, inputGr2Path, front, right, up);
+		if (gfi == NULL) {
+			std::cout << "GR2 preprocess error.\n";
+			return -111;
 		}
-		else
+
+		if (outputType == "-mesh") 
 		{
-			std::cout << "Error: " << f.status << "\nUGX could not be saved." << std::endl;
+			int32 fileExtIndex = inputGr2Path.rfind('.');
+			string matDatPath = inputGr2Path.substr(0, fileExtIndex);
+			std::cout << CreateUGX(gfi, matDatPath, outputPath) << '\n';
 		}
-		//system("pause");
-		exit(117);
+
+		if (outputType == "-anim")
+		{
+			CreateUAX(gfi, outputPath);
+		}
+
+		GrannyFreeFile(forFree);
+		return 20;
 	}
 
-START:
+	/*else if (mode == "-manual") {
 
-	std::string path;
-	std::string mode;
-	std::string materialPath;
+	START_MODE_MANUAL:
 
-
-	std::cout << "Please enter a path to a .gr2 file.\n>>";
-	std::getline(std::cin, path);
-	std::cout << "Please select what you want to export this file as: (a = animation | m = mesh)\n>>";
-	std::getline(std::cin, mode);
+		std::string path;
+		std::string mode__;
+		std::string materialPath;
 
 
-	if (std::string(mode) == "-h")
-	{
-		//for (int i = 0; i < 12; i++)std::cout << helpString[i];
-	}
+		std::cout << "Please enter a path to a .gr2 file.\n>>";
+		std::getline(std::cin, path);
+		std::cout << "Please select what you want to export this file as: (a = animation | m = mesh)\n>>";
+		std::getline(std::cin, mode);
 
-	if (std::string(mode) == "m")
-	{
-		UGXFile f = UGXFile::FromGR2(path, true);
-		if (f.status == "OK")
+
+		if (std::string(mode__) == "-h")
 		{
-			string s(path);
-			s = s.substr(0, s.find(".gr2"));
-
-			f.Save(s + ".ugx");
-			std::cout << "UGX Saved to " + s + ".ugx" << std::endl;
+			//for (int i = 0; i < 12; i++)std::cout << helpString[i];
 		}
-		else
+
+		if (std::string(mode__) == "m")
 		{
-			std::cout << "Error: " << f.status << "\nUGX could not be saved." << std::endl;
+			UGXFile f = UGXFile::FromGR2(path, true);
+			if (f.status == "OK")
+			{
+				string s(path);
+				s = s.substr(0, s.find(".gr2"));
+
+				f.Save(s + ".ugx");
+				std::cout << "UGX Saved to " + s + ".ugx" << std::endl;
+			}
+			else
+			{
+				std::cout << "Error: " << f.status << "\nUGX could not be saved." << std::endl;
+			}
 		}
-	}
 
-	if (std::string(mode) == "a")
-	{
-		CreateUAXs(path);
-	}
+		if (std::string(mode__) == "a")
+		{
+			CreateUAXs(path);
+		}
 
-	std::cout << '\n';
-	goto START;
+		std::cout << '\n';
+		goto START_MODE_MANUAL;
+	}*/
+
+	else std::cout << "bad args.\n";
 }
