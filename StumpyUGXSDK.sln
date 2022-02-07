@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.779
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GR2UGX", "StumpyUGXSDK_Proj\StumpyUGXSDK.vcxproj", "{11909EAD-263E-4995-A7D6-0395008B7103}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAEGR2", "DAEtoGR2\DAEGR2.csproj", "{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestBed", "TestBed\TestBed.vcxproj", "{C905CED5-8A30-4A85-BEA0-11FC7526792D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GR2UGX", "GR2UGX\StumpyUGXSDK.vcxproj", "{11909EAD-263E-4995-A7D6-0395008B7103}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DAEGR2", "DAEGR2\DAEGR2.csproj", "{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +19,16 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|x64.ActiveCfg = Debug|x64
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|x64.Build.0 = Debug|x64
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|x86.ActiveCfg = Debug|Win32
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|x86.Build.0 = Debug|Win32
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|Any CPU.ActiveCfg = Release|Win32
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|x64.ActiveCfg = Release|Win32
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|x64.Build.0 = Release|Win32
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|x86.ActiveCfg = Release|Win32
+		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|x86.Build.0 = Release|Win32
 		{11909EAD-263E-4995-A7D6-0395008B7103}.Debug|Any CPU.ActiveCfg = Debug|Win32
 		{11909EAD-263E-4995-A7D6-0395008B7103}.Debug|x64.ActiveCfg = Debug|x64
 		{11909EAD-263E-4995-A7D6-0395008B7103}.Debug|x64.Build.0 = Debug|x64
@@ -41,16 +51,6 @@ Global
 		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Release|x64.Build.0 = Release|Any CPU
 		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Release|x86.ActiveCfg = Release|Any CPU
 		{0CC2BE6A-BA38-4570-8491-CE7B7E76B458}.Release|x86.Build.0 = Release|Any CPU
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|x64.ActiveCfg = Debug|x64
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|x64.Build.0 = Debug|x64
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|x86.ActiveCfg = Debug|Win32
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Debug|x86.Build.0 = Debug|Win32
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|Any CPU.ActiveCfg = Release|Win32
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|x64.ActiveCfg = Release|Win32
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|x64.Build.0 = Release|Win32
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|x86.ActiveCfg = Release|Win32
-		{C905CED5-8A30-4A85-BEA0-11FC7526792D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{11909EAD-263E-4995-A7D6-0395008B7103}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Granny3dPlayground</RootNamespace>
+    <RootNamespace>GR2UGX</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>GR2UGX</ProjectName>
   </PropertyGroup>
