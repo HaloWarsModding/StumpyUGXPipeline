@@ -49,20 +49,15 @@ granny_file_info* LoadAndPreprocessGR2(granny_file*& out_gf, string path, string
 		return NULL;
 	}
 
-
-	granny_real32 DesiredUnitsPerMeter = 1.0f;
+	granny_real32 DesiredUnitsPerMeter = 1.575f;
 	granny_real32 DesiredOrigin[] = { 0, 0, 0 };
 
 	Ori oriR = oriTranslate.at(right);
 	Ori oriF = oriTranslate.at(front);
 	Ori oriU = oriTranslate.at(up);
 	granny_real32 DesiredRight[] = { oriR.x, oriR.y, oriR.z };
-	granny_real32 DesiredBack[] = { -oriF.x, -oriF.y, -oriF.z };
+	granny_real32 DesiredBack[] = { oriF.x, oriF.y, oriF.z };
 	granny_real32 DesiredUp[] = { oriU.x, oriU.y, oriU.z };
-
-	std::cout << DesiredRight[0] << " " << DesiredRight[1] << " " << DesiredRight[2] << "\n" <<
-		DesiredUp[0] << " " << DesiredUp[1] << " " << DesiredUp[2] << "\n" <<
-		DesiredBack[0] << " " << DesiredBack[1] << " " << DesiredBack[2] << "\n";
 
 	granny_real32 Affine3[3];
 	granny_real32 Linear3x3[9];
@@ -226,6 +221,7 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 {
 	bool verbose = true;
 	UGXFile f;
+	if (gfi->Skeletons == NULL) { f.status = "No Skeleton"; return -3; }
 
 	//verbose output variables
 	std::vector<string> meshNames;
@@ -254,6 +250,32 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 	#pragma region create cached data
 	std::vector<byte> newCachedData;
 
+	float32* lowBounds = new float32[gfi->Skeletons[0]->BoneCount * 3]{};
+	float32* highBounds = new float32[gfi->Skeletons[0]->BoneCount * 3]{};
+	float32 bbHigh[3];
+	float32 bbLow[3];
+	for (int i = 0; i < gfi->Skeletons[0]->BoneCount; i++)
+	{
+		const char* name = gfi->Skeletons[0]->Bones[i].Name;
+		for (int j = 0; j < gfi->MeshCount; j++)
+		{
+			for (int k = 0; k < gfi->Meshes[j]->BoneBindingCount; k++)
+			{
+				granny_bone_binding bb = gfi->Meshes[j]->BoneBindings[k];
+				if (bb.BoneName == name)
+				{
+					if (bb.OBBMin[0] < lowBounds[i * 3 + 0]) lowBounds[i * 3 + 0] = bb.OBBMin[0];
+					if (bb.OBBMin[1] < lowBounds[i * 3 + 1]) lowBounds[i * 3 + 1] = bb.OBBMin[1];
+					if (bb.OBBMin[2] < lowBounds[i * 3 + 2]) lowBounds[i * 3 + 2] = bb.OBBMin[2];
+
+					if (bb.OBBMax[0] > highBounds[i * 3 + 0]) highBounds[i * 3 + 0] = bb.OBBMax[0];
+					if (bb.OBBMax[1] > highBounds[i * 3 + 1]) highBounds[i * 3 + 1] = bb.OBBMax[1];
+					if (bb.OBBMax[2] > highBounds[i * 3 + 2]) highBounds[i * 3 + 2] = bb.OBBMax[2];
+				}
+			}
+		}
+	}
+
 	#pragma region cached data header
 	//magic
 	byte magic[] = { 0x04, 0x00, 0x34, 0xC2 };
@@ -264,21 +286,21 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 	BVec::AddToVectorFromPtr(newCachedData, rigidBoneIndex, 4);
 
 	//bounding sphere center
-	float32 boundingSphereCenter[] = { 0.f, 2.f, 0.f };
+	float32 boundingSphereCenter[] = { 0.f, 0.f, 0.f };
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundingSphereCenter[0]), 4);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundingSphereCenter[1]), 4);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundingSphereCenter[2]), 4);
 
 	//bounding sphere radius
-	float32 boundingSphereRadius = 10.f;
+	float32 boundingSphereRadius = 1.f;
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundingSphereRadius), 4);
 
 	//bounding box
-	float32 boundsA[] = { 10, 10.f, 10.f }; //lower
+	float32 boundsA[] = { -10, -10, -10 }; //lower
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundsA[0]), 4);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundsA[1]), 4);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundsA[2]), 4);
-	float32 boundsB[] = { -10.f, -10.f, -10.f };    //upper
+	float32 boundsB[] = { 10, 10, 10 };    //upper
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundsB[0]), 4);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundsB[1]), 4);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(boundsB[2]), 4);
@@ -331,7 +353,6 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(numMeshes), 8);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(subDataOffsetBase), 8);
 	//bones
-	if (gfi->Skeletons == NULL) { f.status = "No Skeleton"; return -3; }
 	uint64 numBones = (uint64)gfi->Skeletons[0]->BoneCount;
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(numBones), 8);
 	BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesUI64(subDataOffsetBase + (160 * numMeshes)), 8);
@@ -432,14 +453,12 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 		int32 materialID = matIndices[gfi->Meshes[i]->Name];
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(materialID), 4);
 
-
-
 		//accessory index
 		int32 accessoryIndex = i;
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(accessoryIndex), 4);
 
 		//max bones (?)
-		int32 maxBones = 1;
+		int32 maxBones = 4;
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(maxBones), 4);
 
 		//rigid bone index
@@ -462,9 +481,7 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesI32(numberOfTris), 4);
 
 		//vertex size declaration (needed for buffer offset & buffer size)
-		int32 vertexSize = 0;
-		if (isRigid[i]) vertexSize = 24;
-		if (!isRigid[i]) vertexSize = 32;
+		int32 vertexSize = 32;
 
 		//vertex buffer offset (in bytes)
 		int32 vertexBufferOffset = 0;
@@ -568,7 +585,7 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 	int32 currentOffset = newCachedData.size();
 	for (int i = 0; i < numAccessories; i++)
 	{
-		int32 firstBone = i;
+		int32 firstBone = 0;
 		int32 accessoryBoneCount = 1;
 		if (!isRigid[i]) numBones = gfi->Skeletons[0]->BoneCount;
 		int32 sectionIndicesCount = 1;
@@ -600,17 +617,20 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 	//low
 	for (int i = 0; i < numBones; i++)
 	{
-		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(-100.f), 4);
-		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(-100.f), 4);
-		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(-100.f), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(lowBounds[i * 3 + 0]), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(lowBounds[i * 3 + 1]), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(lowBounds[i * 3 + 2]), 4);
 	}
 	//high
 	for (int i = 0; i < numBones; i++)
 	{
-		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(100.f), 4);
-		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(100.f), 4);
-		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(100.f), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(highBounds[i * 3 + 0]), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(highBounds[i * 3 + 1]), 4);
+		BVec::AddToVectorFromPtr(newCachedData, BitConverter::GetBytesF32(highBounds[i * 3 + 2]), 4);
 	}
+
+	delete lowBounds;
+	delete highBounds;
 	#pragma endregion
 
 	f.cachedData = newCachedData;
@@ -646,8 +666,13 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 		{ GrannyReal16Member, GrannyVertexPositionName, 0, 4 },
 		{ GrannyReal32Member, GrannyVertexNormalName, 0, 3 },
 		{ GrannyUInt8Member, GrannyVertexBoneIndicesName, 0, 4},
-		{ GrannyUInt8Member, GrannyVertexBoneWeightsName, 0, 4},
+		{ GrannyUInt8Member, "", 0, 4},
 		{ GrannyReal16Member, "TextureCoordinates0", 0, 2 },
+		{ GrannyEndMember }
+	};
+	granny_data_type_definition WEIGHTS_def[]
+	{
+		{ GrannyReal32Member, GrannyVertexBoneWeightsName, 0, 4},
 		{ GrannyEndMember }
 	};
 	#pragma endregion
@@ -655,37 +680,58 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 	int vdOffset = 0;
 	for (int i = 0; i < gfi->MeshCount; i++)
 	{
-		if (isRigid[i]) //PNT0
+		//PNST0
+		granny_mesh_binding* gmb = GrannyNewMeshBinding(gfi->Meshes[i], gfi->Skeletons[0], gfi->Skeletons[0]);
+		const granny_int32* mb = GrannyGetMeshBindingToBoneIndices(gmb);
+
+		int vDataSize = sizeof(PNST0) * GrannyGetMeshVertexCount(gfi->Meshes[i]);
+		void* vData = malloc(vDataSize);
+		GrannyCopyMeshVertices(gfi->Meshes[i], PNST0_def, vData);
+
+		int wDataSize = sizeof(granny_real32) * 4 * GrannyGetMeshVertexCount(gfi->Meshes[i]);
+		void* wData = malloc(wDataSize);
+		GrannyCopyMeshVertices(gfi->Meshes[i], WEIGHTS_def, wData);
+
+		BVec::AddToVectorFromPtr(newVertexData, (byte*)vData, vDataSize);
+
+		for (int j = 0; j < GrannyGetMeshVertexCount(gfi->Meshes[i]); j++)
 		{
-			int vDataSize = sizeof(PNT0) * GrannyGetMeshVertexCount(gfi->Meshes[i]);
-			void* vData = malloc(vDataSize);
-			GrannyCopyMeshVertices(gfi->Meshes[i], PNT0_def, vData);
+				
+			byte w[4] = {};
+			float f0 = ((granny_real32*)wData)[j * 4 + 0];
+			if (f0 >= 1.0f) w[0] = 255;
+			else w[0] = (byte)((int)(f0 * 256.f));
+				
+			float f1 = ((granny_real32*)wData)[j * 4 + 1];
+			if (f1 >= 1.0f) w[1] = 255;
+			else w[1] = (byte)((int)(f1 * 256.f));
+				
+			float f2 = ((granny_real32*)wData)[j * 4 + 2];
+			if (f2 >= 1.0f) w[2] = 255;
+			else w[2] = (byte)((int)(f2 * 256.f));
 
-			BVec::AddToVectorFromPtr(newVertexData, (byte*)vData, vDataSize);
-			vdOffset += vDataSize;
-		}
-		else //PNST0
-		{
-			granny_mesh_binding* gmb = GrannyNewMeshBinding(gfi->Meshes[i], gfi->Skeletons[0], gfi->Skeletons[0]);
-			const granny_int32* mb = GrannyGetMeshBindingToBoneIndices(gmb);
+			float f3 = ((granny_real32*)wData)[j * 4 + 3];
+			if (f3 >= 1.0f) w[3] = 255;
+			else w[3] = (byte)((int)(f3 * 256.f));
 
-			int vDataSize = sizeof(PNST0) * GrannyGetMeshVertexCount(gfi->Meshes[i]);
-			void* vData = malloc(vDataSize);
-			GrannyCopyMeshVertices(gfi->Meshes[i], PNST0_def, vData);
+			int total = w[0] + w[1] + w[2] + w[3];
+			w[0] += (255 - total);
 
-			BVec::AddToVectorFromPtr(newVertexData, (byte*)vData, vDataSize);
 
-			for (int j = 0; j < GrannyGetMeshVertexCount(gfi->Meshes[i]); j++)
+			for (int k = 0; k < 4; k++)
 			{
-				for (int k = 0; k < 4; k++)
-				{
-					int xx = 0;
-					if (mb != NULL) xx = mb[(int)newVertexData[vdOffset + (j * 32) + 20 + k]] + 1;
-					newVertexData[vdOffset + (j * 32) + 20 + k] = xx;
-				}
+				int xx = 0;
+				if (mb != NULL) xx = mb[(int)newVertexData[vdOffset + (j * 32) + 20 + k]] + 1;
+				newVertexData[vdOffset + (j * 32) + 20 + k] = xx;
+
+
+				newVertexData[vdOffset + (j * 32) + 24 + k] = w[k];
 			}
-			vdOffset += vDataSize;
 		}
+		vdOffset += vDataSize;
+
+		delete vData;
+		delete wData;
 	}
 	f.vertexData = newVertexData;
 	#pragma endregion
@@ -750,10 +796,16 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 	}
 	for (int i = 0; i < names.size(); i++)
 	{
-		nameValueData.push_back(BitConverter::GetBytesUI32(names[i].value)[0]); nameValueData.push_back(BitConverter::GetBytesUI32(names[i].value)[1]);
-		nameValueData.push_back(BitConverter::GetBytesUI32(names[i].value)[2]); nameValueData.push_back(BitConverter::GetBytesUI32(names[i].value)[3]);
-		nameValueData.push_back(BitConverter::GetBytesUI16(names[i].nameOffset)[0]); nameValueData.push_back(BitConverter::GetBytesUI16(names[i].nameOffset)[1]);
-		nameValueData.push_back(BitConverter::GetBytesUI16(names[i].flags)[0]); nameValueData.push_back(BitConverter::GetBytesUI16(names[i].flags)[1]);
+		nameValueData.push_back(BitConverter::GetBytesUI32(names[i].value)[0]); 
+		nameValueData.push_back(BitConverter::GetBytesUI32(names[i].value)[1]);
+		nameValueData.push_back(BitConverter::GetBytesUI32(names[i].value)[2]); 
+		nameValueData.push_back(BitConverter::GetBytesUI32(names[i].value)[3]);
+
+		nameValueData.push_back(BitConverter::GetBytesUI16(names[i].nameOffset)[0]); 
+		nameValueData.push_back(BitConverter::GetBytesUI16(names[i].nameOffset)[1]);
+
+		nameValueData.push_back(BitConverter::GetBytesUI16(names[i].flags)[0]); 
+		nameValueData.push_back(BitConverter::GetBytesUI16(names[i].flags)[1]);
 	}
 
 	BVec::ReplaceRange(&matHeader[12], 4, BitConverter::GetBytesUI32(nodesData.size()));	  //replace nodeData size
@@ -828,6 +880,7 @@ int CreateUGX(granny_file_info* gfi, string materialInfoPath, string outPath)
 
 	#pragma endregion
 
+	
 	#pragma region verbose output
 	if (verbose) {
 		std::printf("\n____________________________________________________________________________________________\n");

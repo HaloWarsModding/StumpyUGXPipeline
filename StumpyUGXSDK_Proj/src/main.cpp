@@ -16,12 +16,18 @@ int main(int a, char** b)
 		string outputType(b[2]);	// (-mesh | -anim)
 		string inputGr2Path(b[3]);  // (path)
 		string outputPath(b[4]);	// (path)
-		string front(b[5]);	// (ori)
-		string right(b[6]);	// (ori)
-		string up(b[7]);	// (ori)
+		string front(b[5]);			// (ori)
+		string right(b[6]);			// (ori)
+		string up(b[7]);			// (ori)
 
 		granny_file* forFree;
 		granny_file_info* gfi = LoadAndPreprocessGR2(forFree, inputGr2Path, front, right, up);
+
+
+
+
+
+
 		if (gfi == NULL) {
 			std::cout << "GR2 preprocess error.\n";
 			return -111;
@@ -31,7 +37,7 @@ int main(int a, char** b)
 		{
 			int32 fileExtIndex = inputGr2Path.rfind('.');
 			string matDatPath = inputGr2Path.substr(0, fileExtIndex);
-			std::cout << CreateUGX(gfi, matDatPath, outputPath) << '\n';
+			CreateUGX(gfi, matDatPath, outputPath) << '\n';
 		}
 
 		if (outputType == "-anim")
@@ -41,6 +47,21 @@ int main(int a, char** b)
 
 		GrannyFreeFile(forFree);
 		return 20;
+	}
+
+	//debug
+	else
+	{
+		string inputGr2Path = "C:\\Users\\jaken\\AppData\\Local\\Temp\\tmpseju60f6\\tmp.gr2";
+		string outputPath = "C:\\Users\\jaken\\AppData\\Local\\Temp\\tmpseju60f6\\tmp.ugx";
+
+		granny_file* forFree;
+		granny_file_info* gfi = LoadAndPreprocessGR2(forFree, inputGr2Path, "Z-", "X-", "Y+");
+		int32 fileExtIndex = inputGr2Path.rfind('.');
+		string matDatPath = inputGr2Path.substr(0, fileExtIndex);
+		std::cout << CreateUGX(gfi, matDatPath, outputPath) << '\n';
+		GrannyFreeFile(forFree);
+
 	}
 
 	/*else if (mode == "-manual") {
@@ -89,5 +110,5 @@ int main(int a, char** b)
 		goto START_MODE_MANUAL;
 	}*/
 
-	else std::cout << "bad args.\n";
+	//else std::cout << "bad args.\n";
 }

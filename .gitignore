@@ -10,7 +10,13 @@
 *.userosscache
 *.sln.docstates
 
-/granny
+granny.dll
+granny_x64.dll
+
+Testbed/
+granny/
+_out/
+_obj/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
