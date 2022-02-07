@@ -18,6 +18,7 @@ Testbed/
 granny/
 _out/
 _obj/
+io_scene_ugx/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
