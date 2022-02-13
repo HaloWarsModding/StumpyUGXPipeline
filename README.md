@@ -1,3 +1,11 @@
 # StumpyUGXPipeline
-Tool for creating .ugx mesh and .uax animations directly in blender. See [here](https://halowarsmodding.github.io/guides/030blenderugx/#/guides/) for usage.
+
+## What is it?
+This is a tool for creating Halo Wars: Definitive Edition .ugx (mesh) and .uax (animation) files directly from blender.
+
+## Tutorial
+See [here](https://halowarsmodding.github.io/guides/030blenderugx/#/guides/) for usage.
+
+![showcase](https://github.com/HaloWarsModding/HaloWarsModding.github.io/blob/master/assets/images/ugxpipeline/export1.PNG)
+
 Source is not buildable without Granny SDK.
